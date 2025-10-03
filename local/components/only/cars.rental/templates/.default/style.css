@@ -1,0 +1,56 @@
+
+
+.car-rental__filter {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-bottom: 20px;
+    padding: 15px;
+    background: #f5f5f5;
+    border-radius: 5px;
+}
+
+.car-rental__field {
+    display: flex;
+    flex-direction: column;
+}
+
+.car-rental__label {
+    font-weight: bold;
+    font-size: 14px;
+    margin-bottom: 4px;
+}
+
+.car-rental__input,
+.car-rental__select,
+.car-rental__submit {
+    padding: 6px;
+    font-size: 14px;
+}
+
+.car-rental__submit {
+    align-self: flex-end;
+}
+
+.car-rental__list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.car-rental__item {
+    padding: 8px;
+    border-bottom: 1px solid #eee;
+}
+
+.car-rental__error {
+    color: red;
+    padding: 10px;
+    background: #ffecec;
+    border-radius: 4px;
+    display: none;
+}
+
+.car-rental__error--visible {
+    display: block;
+}

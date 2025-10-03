@@ -1,94 +1,76 @@
 <?php
-if (!empty($arResult['ERROR'])): ?>
-    <div class="car-rental-error"><?= htmlspecialchars($arResult['ERROR']) ?></div>
-<?endif; ?>
+if (!defined('B_PROLOG_INCLUDED') || B_PROLOG_INCLUDED !== true) die();
+?>
 
-    <form method="get" class="car-rental-filter">
-        <label>
-            С:
-            <input type="datetime-local" name="from"
-                   value="<?= htmlspecialchars($arResult['FROM']) ?>" required>
-        </label>
-        <label>
-            По:
-            <input type="datetime-local" name="to"
-                   value="<?= htmlspecialchars($arResult['TO']) ?>" required>
-        </label>
-        <label>
-            Модель:
-            <input type="text" name="model"
-                   value="<?= htmlspecialchars($arResult['MODEL']) ?>"
-                   placeholder="Название или часть названия">
-        </label>
-        <label>
-            Категория:
-            <select name="category">
+<div class="car-rental">
+	<?php if (!empty($arResult['ERROR'])): ?>
+        <div class="car-rental__error"><?= htmlspecialcharsbx($arResult['ERROR']) ?></div>
+	<?php endif; ?>
+
+    <form method="get" class="car-rental__filter" novalidate>
+        <div class="car-rental__field">
+            <label class="car-rental__label">С:</label>
+            <input
+                    type="datetime-local"
+                    name="from"
+                    class="car-rental__input"
+                    value="<?= htmlspecialcharsbx($arResult['FROM']) ?>"
+                    required
+            >
+        </div>
+
+        <div class="car-rental__field">
+            <label class="car-rental__label">По:</label>
+            <input
+                    type="datetime-local"
+                    name="to"
+                    class="car-rental__input"
+                    value="<?= htmlspecialcharsbx($arResult['TO']) ?>"
+                    required
+            >
+        </div>
+
+        <div class="car-rental__field">
+            <label class="car-rental__label">Модель:</label>
+            <input
+                    type="text"
+                    name="model"
+                    class="car-rental__input"
+                    value="<?= htmlspecialcharsbx($arResult['MODEL']) ?>"
+                    placeholder="Название или часть названия"
+            >
+        </div>
+
+        <div class="car-rental__field">
+            <label class="car-rental__label">Категория:</label>
+            <select name="category" class="car-rental__select">
                 <option value="">Любая</option>
 				<?php foreach ($arResult['CATEGORIES'] as $xmlId => $name): ?>
-                    <option value="<?= htmlspecialchars($xmlId) ?>" <?= $arResult['CATEGORY'] === $xmlId ? 'selected' : '' ?>>
-						<?= htmlspecialchars($name) ?>
+                    <option
+                            value="<?= htmlspecialcharsbx($xmlId) ?>"
+						<?= $arResult['CATEGORY'] === $xmlId ? 'selected' : '' ?>
+                    >
+						<?= htmlspecialcharsbx($name) ?>
                     </option>
 				<?php endforeach; ?>
             </select>
-        </label>
-        <button type="submit">Найти свободные машины</button>
+        </div>
+
+        <button type="submit" class="car-rental__submit">Найти свободные машины</button>
     </form>
 
 	<?php if (!empty($arResult['CARS'])): ?>
-        <h3>Свободные машины (<?= count($arResult['CARS']) ?>)</h3>
-        <ul class="car-rental-list">
+        <h3 class="car-rental__title">Свободные машины (<?= count($arResult['CARS']) ?>)</h3>
+        <ul class="car-rental__list">
 			<?php foreach ($arResult['CARS'] as $car): ?>
-                <li>
-                    <strong><?= htmlspecialchars($car['NAME']) ?></strong>
-                    (Категория: <?= htmlspecialchars($car['CATEGORY']) ?>)
+                <li class="car-rental__item">
+                    <strong><?= htmlspecialcharsbx($car['NAME']) ?></strong>
+                    (Категория: <?= htmlspecialcharsbx
+                    ($car['PROPERTY_CATEGORY_VALUE'] ?: 'любая') ?>)
                 </li>
 			<?php endforeach; ?>
         </ul>
 	<?php else: ?>
-        <p>Нет свободных машин в указанный период.</p>
+        <p class="car-rental__empty">Нет свободных машин в указанный период.</p>
 	<?php endif; ?>
-
-    <style>
-        .car-rental-filter {
-            display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
-            margin-bottom: 20px;
-            padding: 15px;
-            background: #f5f5f5;
-            border-radius: 5px;
-        }
-
-        .car-rental-filter label {
-            display: flex;
-            flex-direction: column;
-            font-weight: bold;
-            font-size: 14px;
-        }
-
-        .car-rental-filter input,
-        .car-rental-filter select,
-        .car-rental-filter button {
-            margin-top: 4px;
-            padding: 6px;
-        }
-
-        .car-rental-list {
-            list-style: none;
-            padding: 0;
-        }
-
-        .car-rental-list li {
-            padding: 8px;
-            border-bottom: 1px solid #eee;
-        }
-
-        .car-rental-error {
-            color: red;
-            padding: 10px;
-            background: #ffecec;
-            border-radius: 4px;
-        }
-    </style>
-
-<?php  ?>
+</div>

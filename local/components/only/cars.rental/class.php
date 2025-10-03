@@ -15,17 +15,13 @@ Loc::loadMessages(__FILE__);
 
 class CarsRental extends CBitrixComponent
 {
-	/** @var int */
-	protected $carsIblockId;
+	protected array $iblocks;
 
-	/** @var int */
-	protected $rentsIblockId;
 
-	/** @var int */
-	protected $propCarId;
+	protected int $carsIblockId;
 
-	/** @var int */
-	protected $propCategoryId;
+	protected int $rentsIblockId;
+
 
 	public function onPrepareComponentParams($arParams)
 	{
@@ -44,10 +40,10 @@ class CarsRental extends CBitrixComponent
 			}
 
 			$this->getIblockIds();
-			$this->getPropertyIds();
 
 			$this->arResult['CARS'] = $this->getAvailableCars();
 			$this->arResult['CATEGORIES'] = $this->getCategoryList();
+
 
 			$this->arResult['FROM'] = $_GET['from'] ?? '';
 			$this->arResult['TO'] = $_GET['to'] ?? '';
@@ -63,7 +59,7 @@ class CarsRental extends CBitrixComponent
 	protected function checkModules(): bool
 	{
 		if (!Loader::includeModule('iblock')) {
-			ShowError(Loc::getMessage('CAR_RENTAL_LIST_ERROR_MODULE'));
+			ShowError('Module Iblock is not loaded');
 			return false;
 		}
 		return true;
@@ -73,7 +69,7 @@ class CarsRental extends CBitrixComponent
 	{
 		$iblocksDB = IblockTable::getList([
 				'filter' => ['CODE' => ['cars', 'rents']],
-				'select' => ['ID', 'NAME', 'CODE']]
+				'select' => ['ID', 'CODE']]
 		);
 		$iblocks = [];
 
@@ -87,84 +83,68 @@ class CarsRental extends CBitrixComponent
 		$cars = $iblocks['cars'];
 		$rents = $iblocks['rents'];
 
+		$this->carsIblockId = $cars['ID'];
+		$this->rentsIblockId = $rents['ID'];
+
 		if (!$cars || !$rents) {
 			throw new SystemException('Инфоблоки cars или rents не найдены');
 		}
 
-		$this->carsIblockId = (int)$cars['ID'];
-		$this->rentsIblockId = (int)$rents['ID'];
 	}
 
-	protected function getPropertyIds(): void
+
+	private function convertToBitrixFormat(?string $dateString): string
 	{
-		$carProp = PropertyTable::getList([
-			'filter' => [
-				'=IBLOCK_ID' => $this->rentsIblockId,
-				'=CODE'      => 'CAR'
-			],
-			'select' => ['ID']
-		])->fetch();
+		$format = 'Y-m-d H:i:s';
 
-		$catProp = PropertyTable::getList([
-			'filter' => [
-				'=IBLOCK_ID' => $this->carsIblockId,
-				'=CODE'      => 'CATEGORY'
-			],
-			'select' => ['ID']
-		])->fetch();
-
-		if (!$carProp || !$catProp) {
-			throw new SystemException('Не найдены свойства CAR или CATEGORY');
+		if (empty($dateString)) {
+			return (new DateTime())->format($format);
 		}
 
-		$this->propCarId = (int)$carProp['ID'];
-		$this->propCategoryId = (int)$catProp['ID'];
-	}
-
-	protected function parseDateTime(string $str): ?\DateTime
-	{
-		if (!$str) {
-			return null;
+		$date = DateTime::createFromFormat('Y-m-d\TH:i', $dateString);
+		if (!$date) {
+			$date = new DateTime($dateString);
 		}
-		$format = 'Y-m-d\TH:i';
-		return \DateTime::createFromFormat($format, $str);
+
+		$dateFormatted = $date->format($format);
+
+		return $dateFormatted;
 	}
 
 
 	/**
-	 * Возвращает список свободных машин
+	 * Возвращаем список свободных машин
 	 */
 	protected function getAvailableCars(): array
 	{
+		$isDebug = false;
+		$request = \Bitrix\Main\Application::getInstance()->getContext()->getRequest();
 
-		$to = $this->convertToBitrixFormat($_GET['to']);
-		$from = $this->convertToBitrixFormat($_GET['from']);
+		$to = trim($request->get('to'));
+		$from = trim($request->get('from'));
 
-		global $DB;
-		$to = date($DB->DateFormatToPHP(
-			\CLang::GetDateFormat()),
-			$to->getTimestamp()
-		);
-		$from = date($DB->DateFormatToPHP(
-			\CLang::GetDateFormat()),
-			$from->getTimestamp()
-		);
+		$to = $this->convertToBitrixFormat($to);
+		$from = $this->convertToBitrixFormat($from);
+		if($isDebug) {
+			echo "<pre>";
+			print_r($from) . "\n";
+			echo "<pre/><br/>";
+			echo "<pre>";
+			print_r($to) . "\n";
+			echo "<pre/><br/>";
+		}
 
-		$toFormatted = DateTime::createFromFormat('d.m.Y H:i:s', $to);
-		$toFormatted = $toFormatted->format('Y-m-d H:i:s');
 
-		$fromFormatted = DateTime::createFromFormat('d.m.Y H:i:s', $from);
-		$fromFormatted = $fromFormatted->format('Y-m-d H:i:s');
 
 
 		$overlappingRentFilter = [
 			'=IBLOCK_ID'          => $this->rentsIblockId,
 			'ACTIVE'              => 'Y',
-			'<PROPERTY_RENT_FROM' => $toFormatted,
-			'>PROPERTY_RENT_TO'   => $fromFormatted,
+			'<PROPERTY_RENT_FROM' => $to,
+			'>PROPERTY_RENT_TO'   => $from,
 		];
 
-		$selectRents = ['ID', 'PROPERTY_CAR'];
+		$selectRents = ['ID', 'PROPERTY_CAR', 'PROPERTY_RENT_FROM', 'PROPERTY_RENT_TO'];
 
 		$busyRentsDB = \CIBlockElement::GetList(
 			false,
@@ -177,6 +157,13 @@ class CarsRental extends CBitrixComponent
 
 		$busyCarIds = [];
 		while ($rent = $busyRentsDB->fetch()) {
+			if($isDebug) {
+				echo "<pre>";
+				print_r($rent) . "\n";
+				echo "<pre/><br/>";
+			}
+
+
 			if (!empty($rent['PROPERTY_CAR_VALUE'])) {
 				$busyCarIds[] = $rent['PROPERTY_CAR_VALUE'];
 			}
@@ -198,11 +185,13 @@ class CarsRental extends CBitrixComponent
 			];
 		}
 
-		$model = trim($_GET['model'] ?? '');
-		$category = trim($_GET['category'] ?? '');
+
+		$model = trim($request->get('model'));
+		$category = trim($request->get('category'));
+
 
 		if ($category !== '') {
-			$carsFilter['=PROPERTY_CATEGORY'] = $category;
+			$carsFilter['=PROPERTY_CATEGORY_VALUE'] = $category;
 		}
 
 		if ($model !== '') {
@@ -225,24 +214,17 @@ class CarsRental extends CBitrixComponent
 		return $cars;
 	}
 
-	private function convertToBitrixFormat(?string $dateString): DateTime
-	{
-		if (empty($dateString)) {
-			return new DateTime();
-		}
-
-		$date = DateTime::createFromFormat('Y-m-d\TH:i', $dateString);
-		if (!$date) {
-			$date = new DateTime($dateString);
-		}
-
-		return $date;
-	}
 
 	protected function getCategoryList(): array
 	{
+		$el = \CIBlockProperty::GetList(
+			false,
+			['CODE' => 'CATEGORY', 'IBLOCK_ID' => $this->carsIblockId]
+		)->Fetch();
+		$categoryPropId = $el['ID'];
+
 		$enumList = PropertyEnumerationTable::getList([
-			'filter' => ['=PROPERTY_ID' => $this->propCategoryId],
+			'filter' => ['=PROPERTY_ID' => $categoryPropId],
 			'select' => ['XML_ID', 'VALUE'],
 			'order'  => ['SORT' => 'ASC', 'VALUE' => 'ASC']
 		])->fetchAll();
