@@ -32,7 +32,6 @@ $carsIblockId = $iblocks['cars']['ID'];
 $rentsIblockId = $iblocks['rents']['ID'];
 
 if ($rentsIblockId) {
-	$rentsIblockId = $iblocks['rents'];
 	$rentElements = ElementTable::getList([
 		'filter' => ['IBLOCK_ID' => $rentsIblockId],
 		'select' => ['ID']
@@ -133,7 +132,7 @@ for ($i = 0; $i < 5; $i++) {
 	$rentTo->modify("+2 days");
 
 	$el = new \CIBlockElement();
-	$rentId = $el->Add([
+	$rentArr = [
 		'IBLOCK_ID' => $rentsIblockId,
 		'NAME' => "Аренда машины #{$cars[$i]}",
 		'ACTIVE' => 'Y',
@@ -144,7 +143,15 @@ for ($i = 0; $i < 5; $i++) {
 			"RENT_TO" => $rentTo->format('d.m.Y H:i:s')
 		],
 		'CODE' => "Аренда машины #{$cars[$i]} " . rand(0,99999)
-	]);
+	];
+	\Bitrix\Main\Diag\Debug::writeToFile(
+		$rentArr,
+		date("d.m.Y H:i:s"),
+		"local/rent.log"
+	);
+
+
+	$rentId = $el->Add($rentArr);
 
 	if (!$rentId) {
 		echo "Ошибка создания аренды для машины {$cars[$i]}: " . $el->LAST_ERROR . "\n";
