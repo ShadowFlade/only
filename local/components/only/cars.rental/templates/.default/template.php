@@ -4,7 +4,7 @@ if (!defined('B_PROLOG_INCLUDED') || B_PROLOG_INCLUDED !== true) die();
 
 <div class="car-rental">
 	<?php if (!empty($arResult['ERROR'])): ?>
-        <div class="car-rental__error"><?= htmlspecialcharsbx($arResult['ERROR']) ?></div>
+        <div class="car-rental__error"><?= htmlspecialchars($arResult['ERROR']) ?></div>
 	<?php endif; ?>
 
     <form method="get" class="car-rental__filter" novalidate>
@@ -14,7 +14,7 @@ if (!defined('B_PROLOG_INCLUDED') || B_PROLOG_INCLUDED !== true) die();
                     type="datetime-local"
                     name="from"
                     class="car-rental__input"
-                    value="<?= htmlspecialcharsbx($arResult['FROM']) ?>"
+                    value="<?= htmlspecialchars($arResult['FROM']) ?>"
                     required
             >
         </div>
@@ -25,7 +25,7 @@ if (!defined('B_PROLOG_INCLUDED') || B_PROLOG_INCLUDED !== true) die();
                     type="datetime-local"
                     name="to"
                     class="car-rental__input"
-                    value="<?= htmlspecialcharsbx($arResult['TO']) ?>"
+                    value="<?= htmlspecialchars($arResult['TO']) ?>"
                     required
             >
         </div>
@@ -36,7 +36,7 @@ if (!defined('B_PROLOG_INCLUDED') || B_PROLOG_INCLUDED !== true) die();
                     type="text"
                     name="model"
                     class="car-rental__input"
-                    value="<?= htmlspecialcharsbx($arResult['MODEL']) ?>"
+                    value="<?= htmlspecialchars($arResult['MODEL']) ?>"
                     placeholder="Название или часть названия"
             >
         </div>
@@ -47,10 +47,10 @@ if (!defined('B_PROLOG_INCLUDED') || B_PROLOG_INCLUDED !== true) die();
                 <option value="">Любая</option>
 				<?php foreach ($arResult['CATEGORIES'] as $xmlId => $name): ?>
                     <option
-                            value="<?= htmlspecialcharsbx($xmlId) ?>"
+                            value="<?= htmlspecialchars($xmlId) ?>"
 						<?= $arResult['CATEGORY'] === $xmlId ? 'selected' : '' ?>
                     >
-						<?= htmlspecialcharsbx($name) ?>
+						<?= htmlspecialchars($name) ?>
                     </option>
 				<?php endforeach; ?>
             </select>
@@ -64,9 +64,9 @@ if (!defined('B_PROLOG_INCLUDED') || B_PROLOG_INCLUDED !== true) die();
         <ul class="car-rental__list">
 			<?php foreach ($arResult['CARS'] as $car): ?>
                 <li class="car-rental__item">
-                    <strong><?= htmlspecialcharsbx($car['NAME']) ?></strong>
-                    (Категория: <?= htmlspecialcharsbx
-                    ($car['PROPERTY_CATEGORY_VALUE'] ?: 'любая') ?>)
+                    <strong><?= htmlspecialchars($car['NAME']) ?></strong>
+                    (Категория: <?= htmlspecialchars
+					($car['PROPERTY_CATEGORY_VALUE'] ?: 'любая') ?>)
                 </li>
 			<?php endforeach; ?>
         </ul>
