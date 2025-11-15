@@ -17,7 +17,14 @@ class Register
 		self::$eventManager->addEventHandler(
 			'iblock',
 			'OnBeforeIBlockElementUpdate',
-			["\Only\Handler\Product", "checkDontAllowDelete"]);
+			["\Only\Handler\Product", "checkDontAllowModify"]
+		);
+
+		self::$eventManager->addEventHandler(
+			'iblock',
+			'OnBeforeIBlockElementDelete',
+			["\Only\Handler\Product", "checkDontAllowDelete"]
+		);
 	}
 
 }
